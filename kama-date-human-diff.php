@@ -50,14 +50,13 @@ class Kama_Date_Human_Diff {
 		if( preg_match( '/[aABgGhHis]/', $req_format ) ){
 
 			$diff     = $to_time - $from_time; // отдельно да!
-			$negative = $diff < 0;
 
-			// если отрицательно
-			if( $negative )
+			// отрицательно
+			if( $diff < 0 )
 				$outpatt = __('через %s','km');
 
-			$min_passed   = floor( $diff/60 )   * ( $negative ? -1 : 1 ) ;
-			$hours_passed = floor( $diff/3600 ) * ( $negative ? -1 : 1 ) ;
+			$min_passed   = abs( floor( $diff/60 ) );
+			$hours_passed = abs( floor( $diff/3600 ) );
 
 			if( $min_passed < 60 )
 				return '<span title="'. $date .'">'. sprintf( $outpatt, self::_plural($min_passed, __('минута,минуты,минут','km') ) ) .'</span>';
