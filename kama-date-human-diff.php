@@ -4,7 +4,7 @@
  * Description: Показывает разницу от текущей даты: 3 часа назад, 5 дней назад, 2 часа назад. Руссифицирует даты в WordPress, переводит месяца и дни недели.
  * Author:      Kama
  * Author url:  http://wp-kama.ru
- * Version:     3.7
+ * Version:     3.8
  */
 
 new Kama_Date_Human_Diff();
@@ -13,10 +13,15 @@ class Kama_Date_Human_Diff {
 
 	public function __construct( $russify_months = true ){
 
-		add_filter( 'date_i18n', [ __CLASS__, 'difference' ], 11, 3 );
+		$is_new = version_compare( $GLOBALS['wp_version'], '5.3.0', '>=' );
 
-		if( $russify_months )
-			add_filter( 'date_i18n', [ __CLASS__, 'russify_months' ], 11, 2 );
+		if( $is_new )  add_filter( 'wp_date', [ __CLASS__, 'difference' ], 11, 3 );   // WP 5.3
+		else           add_filter( 'date_i18n', [ __CLASS__, 'difference' ], 11, 3 ); // WP < 5.3
+
+		if( $russify_months ){
+			if( $is_new )  add_filter( 'wp_date', [ __CLASS__, 'russify_months' ], 11, 2 );   // WP 5.3
+			else           add_filter( 'date_i18n', [ __CLASS__, 'russify_months' ], 11, 2 ); // WP < 5.3
+		}
 	}
 
 	/**
@@ -27,7 +32,7 @@ class Kama_Date_Human_Diff {
 	 *
 	 * @param string $date       Исходная дата получаемая из хука, её будем менять.
 	 * @param string $req_format Формат даты который передается.
-	 * @param int    $from_time  Метка времени от которой нужно считать разница (в UNIX формате).
+	 * @param int    $from_time  Метка времени от которой нужно считать разницу (в UNIX формате).
 	 *
 	 * @return string Дату в русском формате
 	 */
@@ -179,6 +184,7 @@ class Kama_Date_Human_Diff {
 
 /*
 Изменения:
+3.8 - Hook `wp_date` для поддержки версий WP 5.3 и выше.
 3.7 - добавил: обработку минут.
     - изменил: название класса с Kama_Date_Russify на Kama_Date_Human_Diff.
     - небольшой рефакторинг.
