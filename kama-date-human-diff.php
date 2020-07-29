@@ -4,31 +4,51 @@
  * Description: Показывает разницу от текущей даты: 3 часа назад, 5 дней назад, 2 часа назад. Руссифицирует даты в WordPress, переводит месяца и дни недели.
  * Author:      Kama
  * Author url:  http://wp-kama.ru
- * Version:     3.8
+ * Version:     3.9
  */
 
 new Kama_Date_Human_Diff();
 
 class Kama_Date_Human_Diff {
 
-	public function __construct( $russify_months = true ){
+	public function __construct(){
 
 		$is_new = version_compare( $GLOBALS['wp_version'], '5.3.0', '>=' );
 
-		if( $is_new )  add_filter( 'wp_date', [ __CLASS__, 'difference' ], 11, 3 );   // WP 5.3
+		if( $is_new )  add_filter( 'wp_date',   [ __CLASS__, 'difference' ], 11, 3 ); // WP 5.3
 		else           add_filter( 'date_i18n', [ __CLASS__, 'difference' ], 11, 3 ); // WP < 5.3
 
-		if( $russify_months ){
-			if( $is_new )  add_filter( 'wp_date', [ __CLASS__, 'russify_months' ], 11, 2 );   // WP 5.3
-			else           add_filter( 'date_i18n', [ __CLASS__, 'russify_months' ], 11, 2 ); // WP < 5.3
-		}
+		//if( $is_new )  add_filter( 'wp_date',   [ __CLASS__, 'month_declination' ], 11, 2 ); // WP 5.3
+		//else           add_filter( 'date_i18n', [ __CLASS__, 'month_declination' ], 11, 2 ); // WP < 5.3
+
+		add_action( 'after_setup_theme', [ __CLASS__, 'fix_month_abbrev' ], 0 );
+	}
+
+	static function fix_month_abbrev(){
+		global $wp_locale;
+
+		$wp_locale->month_abbrev = [
+			'Январь'    => 'янв.',
+			'Февраль'   => 'фев.',
+			'Март'      => 'мар.',
+			'Апрель'    => 'апр.',
+			'Май'       => 'май',
+			'Июнь'      => 'июнь',
+			'Июль'      => 'июль',
+			'Август'    => 'авг.',
+			'Сентябрь'  => 'сен.',
+			'Октябрь'   => 'окт.',
+			'Ноябрь'    => 'ноя.',
+			'Декабрь'   => 'дек.',
+
+		] + $wp_locale->month_abbrev;
 	}
 
 	/**
 	 * Меняет выводимую дату на разницу: 3 часа назад, 5 дней назад, 7 месяцев назад...
-	 * Функция для фильтра date_i18n.
+	 * Функция для фильтра `wp_date`.
 	 *
-	 * Чтобы функция не работала, в формате нужно использовать обратный слэш \. Пр: "j F\ Y", "\д\а\т\а\: j F Y"
+	 * Чтобы функция не работала, в формате нужно использовать обратный слэш \. Пр: "j F\ Y", "\дата: j F Y"
 	 *
 	 * @param string $date       Исходная дата получаемая из хука, её будем менять.
 	 * @param string $req_format Формат даты который передается.
@@ -135,17 +155,21 @@ class Kama_Date_Human_Diff {
 
 	/**
 	 * Русифицирует месяца и недели в дате.
-	 * Функция для фильтра date_i18n.
+	 * Функция для фильтра `wp_date`.
 	 *
 	 * @param string $date       Дата в принятом формате.
 	 * @param string $req_format Формат передаваемой даты.
 	 *
 	 * @return string Дату в русском формате.
 	 */
-	static function russify_months( $date, $req_format ){
+	static function month_declination( $date, $req_format ){
 
-		// в формате есть "строковые" неделя или месяц. выходим, если в формате есть экранированные символы
-		if( false !== strpos( $req_format, '\\') || ! preg_match('/[FMlS]/', $req_format ) || determine_locale() !== 'ru_RU'  )
+		// Выходим, если в формате нет "строковых" неделя или месяц
+		if(
+			! preg_match('/[FMlS]/', $req_format )
+			|| determine_locale() !== 'ru_RU'
+			//|| false !== strpos( $req_format, '\\')
+		)
 			return $date;
 
 		$date = strtr( $date, [
@@ -184,6 +208,7 @@ class Kama_Date_Human_Diff {
 
 /*
 Изменения:
+3.9 - Новый метод `fix_month_abbrev()` и логика связанная с ним.
 3.8 - Hook `wp_date` для поддержки версий WP 5.3 и выше.
 3.7 - добавил: обработку минут.
     - изменил: название класса с Kama_Date_Russify на Kama_Date_Human_Diff.
