@@ -4,7 +4,7 @@
  * Description: Показывает разницу от текущей даты: 3 часа назад, 5 дней назад, 2 часа назад. Руссифицирует даты в WordPress, переводит месяца и дни недели.
  * Author:      Kama
  * Author url:  http://wp-kama.ru
- * Version:     3.9
+ * Version:     4.0
  */
 
 new Kama_Date_Human_Diff();
@@ -68,13 +68,13 @@ class Kama_Date_Human_Diff {
 
 		// оптимизация
 		static $to_time, $to_day;
-		if( ! $to_time ) $to_time = $_to_time ?: current_time( 'timestamp', 0 );
+		if( ! $to_time ) $to_time = $_to_time ?: time();         // $from_time прилетает с поправкой на GMT зону
 		if( ! $to_day )  $to_day  = date( $cdaypatt, $to_time ); // день мес год без лидирующего нуля: 25 12 2015
 
-		// в формате есть время
+		// в формате есть время и прошло меньше 24 часов
 		if( preg_match( '/[aABgGhHis]/', $req_format ) ){
 
-			$diff     = $to_time - $from_time; // отдельно да!
+			$diff = $to_time - $from_time; // отдельно да!
 
 			// отрицательно
 			if( $diff < 0 )
@@ -83,17 +83,17 @@ class Kama_Date_Human_Diff {
 			$min_passed   = abs( floor( $diff/60 ) );
 			$hours_passed = abs( floor( $diff/3600 ) );
 
+			if( $min_passed == 0 )
+				return '<span title="'. $date .'">'. __('сейчас','km') .'</span>';
+
 			if( $min_passed < 60 )
 				return '<span title="'. $date .'">'. sprintf( $outpatt, self::_plural($min_passed, __('минута,минуты,минут','km') ) ) .'</span>';
-
-			if( $hours_passed == 0 )
-				return '<span title="'. $date .'">'. __('сейчас','km') .'</span>';
 
 			if( $hours_passed < 24 )
 				return '<span title="'. $date .'">'. sprintf( $outpatt, self::_plural($hours_passed, __('час,часа,часов','km') ) ) .'</span>';
 		}
 
-		// прошло больше 24 часов и в формате есть дата
+		// формате есть дата и прошло больше 24 часов
 		if( ( ! isset($hours_passed) || $hours_passed >= 24 ) && preg_match( '/[dDjLNSwz]/', $req_format ) ){
 
 			$diff        = $to_time - $from_time;
@@ -208,6 +208,8 @@ class Kama_Date_Human_Diff {
 
 /*
 Изменения:
+4.0 - Баг: $from_time прилетает с поправкой на GMT зону.
+    - Баг: надо "сейчас" при $min_passed == 0.
 3.9 - Новый метод `fix_month_abbrev()` и логика связанная с ним.
 3.8 - Hook `wp_date` для поддержки версий WP 5.3 и выше.
 3.7 - добавил: обработку минут.
