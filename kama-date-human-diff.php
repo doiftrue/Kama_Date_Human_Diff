@@ -1,10 +1,9 @@
-<?php
 /*
  * Plugin Name: Kama Date Human Difference
  * Description: Показывает разницу от текущей даты: 3 часа назад, 5 дней назад, 2 часа назад. Руссифицирует даты в WordPress, переводит месяца и дни недели.
  * Author:      Kama
  * Author url:  http://wp-kama.ru
- * Version:     4.0
+ * Version:     4.3
  */
 
 new Kama_Date_Human_Diff();
@@ -15,11 +14,15 @@ class Kama_Date_Human_Diff {
 
 		$is_new = version_compare( $GLOBALS['wp_version'], '5.3.0', '>=' );
 
-		if( $is_new )  add_filter( 'wp_date',   [ __CLASS__, 'difference' ], 11, 3 ); // WP 5.3
-		else           add_filter( 'date_i18n', [ __CLASS__, 'difference' ], 11, 3 ); // WP < 5.3
+		if( $is_new )
+			add_filter( 'wp_date',   [ __CLASS__, 'difference' ], 11, 3 ); // WP 5.3
+		else
+			add_filter( 'date_i18n', [ __CLASS__, 'difference' ], 11, 3 ); // WP < 5.3
 
-		//if( $is_new )  add_filter( 'wp_date',   [ __CLASS__, 'month_declination' ], 11, 2 ); // WP 5.3
-		//else           add_filter( 'date_i18n', [ __CLASS__, 'month_declination' ], 11, 2 ); // WP < 5.3
+		//if( $is_new )
+		//  add_filter( 'wp_date',   [ __CLASS__, 'month_declination' ], 11, 2 ); // WP 5.3
+		//else
+		//  add_filter( 'date_i18n', [ __CLASS__, 'month_declination' ], 11, 2 ); // WP < 5.3
 
 		add_action( 'after_setup_theme', [ __CLASS__, 'fix_month_abbrev' ], 0 );
 	}
@@ -60,10 +63,10 @@ class Kama_Date_Human_Diff {
 
 		// не меняем в админке.
 		// выходим, если в формате есть экранированные символы
-		if( is_admin() || false !== strpos( $req_format, '\\') )
+		if( is_admin() || false !== strpos( $req_format, '\\' ) )
 			return $date;
 
-		$outpatt  = _x( '%s назад','дней назад','km' );
+		$outpatt = _x( '%s назад', 'дней назад', 'km' );
 		$cdaypatt = 'j n Y';
 
 		// оптимизация
@@ -78,78 +81,88 @@ class Kama_Date_Human_Diff {
 
 			// отрицательно
 			if( $diff < 0 )
-				$outpatt = __('через %s','km');
+				$outpatt = _x( 'через %s', 'через 2 дня', 'km' );
 
-			$min_passed   = abs( floor( $diff/60 ) );
-			$hours_passed = abs( floor( $diff/3600 ) );
+			$min_passed   = (int) abs( floor( $diff / 60 ) );
+			$hours_passed = (int) abs( floor( $diff / 3600 ) );
 
-			if( $min_passed == 0 )
+			if( $min_passed === 0 )
 				return '<span title="'. $date .'">'. __('сейчас','km') .'</span>';
 
 			if( $min_passed < 60 )
-				return '<span title="'. $date .'">'. sprintf( $outpatt, self::_plural($min_passed, __('минута,минуты,минут','km') ) ) .'</span>';
+				return '<span title="'. $date .'">'. sprintf( $outpatt, self::_plural( $min_passed, __('минута,минуты,минут','km') ) ) .'</span>';
 
 			if( $hours_passed < 24 )
-				return '<span title="'. $date .'">'. sprintf( $outpatt, self::_plural($hours_passed, __('час,часа,часов','km') ) ) .'</span>';
+				return '<span title="'. $date .'">'. sprintf( $outpatt, self::_plural( $hours_passed, __('час,часа,часов','km') ) ) .'</span>';
 		}
 
 		// формате есть дата и прошло больше 24 часов
-		if( ( ! isset($hours_passed) || $hours_passed >= 24 ) && preg_match( '/[dDjLNSwz]/', $req_format ) ){
+		if(
+			( empty( $hours_passed ) || $hours_passed >= 24 )
+			&&
+			preg_match( '/[dDjLNSwz]/', $req_format )
+		){
 
-			$diff        = $to_time - $from_time;
-			$days_passed = floor( $diff / DAY_IN_SECONDS );
+			$diff = $to_time - $from_time;
+			$days_passed = (int) floor( $diff / DAY_IN_SECONDS );
 
 			// если отрицательно
 			if( $days_passed < 0 ){
 				$days_passed *= -1;
-				$outpatt = __('через %s','km');
+				$outpatt = __( 'через %s', 'km' );
 			}
 
-			if(0){}
-			elseif( $days_passed == 0 || date($cdaypatt, $from_time) == $to_day )
-				return __('сегодня','km');
-			elseif( $days_passed == 1 )
-				return __('вчера','km');
+			if( $days_passed === 0 || date( $cdaypatt, $from_time ) === $to_day )
+				return __( 'сегодня', 'km' );
+
+			if( $days_passed === 1 )
+				return __( 'вчера', 'km' );
+
 			// дни
-			elseif( $days_passed < 30 ){
-				$out = self::_plural( $days_passed, __('день,дня,дней','km') );
+			if( $days_passed < 30 ){
+				$out = self::_plural( $days_passed, __( 'день,дня,дней', 'km' ) );
 			}
 			// месяцы
 			elseif( $days_passed < 365 ){
-				$months_passed = floor( $days_passed / 30.5 ) ?: 1;
+
+				$months_passed = (int) floor( $days_passed / 30.5 ) ?: 1;
 				$outpatt       = "<span title=\"$date\">$outpatt</span>";
 				$is_short_patt = '/(?<!\\\\)[DM]/'; // в формате есть D или M (короткий день недели или месяц)
 
-				if( preg_match( $is_short_patt, $req_format ) )
-					$out = $months_passed == 1 ? __('месяц','km') : "$months_passed ". _x('мес','месяц','km');
-				else
-					$out = $months_passed == 1 ? __('месяц','km') : self::_plural( $months_passed, __('месяц,месяца,месяцев','km') );
+				if( preg_match( $is_short_patt, $req_format ) ){
+					$out = $months_passed === 1 ? __( 'месяц', 'km' ) : "$months_passed " . _x( 'мес', 'месяц', 'km' );
+				}
+				else{
+					$out = $months_passed === 1 ? __( 'месяц', 'km' ) : self::_plural( $months_passed, __( 'месяц,месяца,месяцев', 'km' ) );
+				}
 			}
 			// годы
 			elseif( $days_passed >= 365 ){
-				$years_passed  = floor( $days_passed / (30.5 * 12) ) ?: 1; // лет прошло
-				$months_passed = floor( ( $days_passed - ($years_passed*365) ) / 30.5 ) ?: 1; // месяцев прошло
-				$ten_m_part    = intval( round($months_passed/12, 2) * 10 ); // десятая часть месяца
-				$ten_m_part    = $ten_m_part ? ".$ten_m_part" : '';
+
+				$years_passed = (int) floor( $days_passed / ( 30.5 * 12 ) ) ?: 1; // лет прошло
+				$months_passed = (int) floor( ( $days_passed - ( $years_passed * 365 ) ) / 30.5 ) ?: 1; // месяцев прошло
+				$decimal = (int) ( round( $months_passed / 12, 2 ) * 10 ); // десятая часть месяца
+				$decimal = $decimal ? ".$decimal" : '';
 
 				$outpatt = "<span title=\"$date\">$outpatt</span>";
 
 				// без числа вначале
-				if( $years_passed == 1 && ! $ten_m_part )
-					$out = __('год','km');
-				else {
-					if( $years_passed == 1 && $ten_m_part )
-						$out = "$years_passed$ten_m_part ". _x('года','1.5 года назад','km');
-					else
-						$out = "$years_passed$ten_m_part ". self::_plural( $years_passed, __('год,года,лет','km'), true );
+				if( $years_passed === 1 && ! $decimal ){
+					$out = __( 'год', 'km' );
 				}
-
+				// десятичное значение
+				elseif( $years_passed === 1 && $decimal ){
+					$out = $years_passed . "$decimal " . _x( 'года', '1.5 года назад', 'km' );
+				}
+				// целое число лет
+				else{
+					$out = $years_passed . "$decimal " . self::_plural( $years_passed, __( 'год,года,лет', 'km' ), true );
+				}
 			}
 
 			return sprintf( $outpatt, $out );
 		}
 
-		// если это время, год, штамп времени или ..., то просто возвращаем результат
 		return $date;
 	}
 
@@ -166,7 +179,7 @@ class Kama_Date_Human_Diff {
 
 		// Выходим, если в формате нет "строковых" неделя или месяц
 		if(
-			! preg_match('/[FMlS]/', $req_format )
+			! preg_match( '/[FMlS]/', $req_format )
 			|| determine_locale() !== 'ru_RU'
 			//|| false !== strpos( $req_format, '\\')
 		)
@@ -192,35 +205,21 @@ class Kama_Date_Human_Diff {
 	/**
 	 * Склонение. Возвращает переданное число и слово после него в нужном склонении.
 	 *
-	 * @param      $number
-	 * @param      $titles
-	 * @param bool $strip_num
+	 * @param int          $number
+	 * @param string|array $titles
+	 * @param bool         $strip_num
 	 *
 	 * @return string
 	 */
 	static function _plural( $number, $titles, $strip_num = false ){
-		$titles = array_map( 'trim', explode( ',', $titles ) );
-		$cases = [ 2, 0, 1, 1, 1, 2 ];
-		return ( $strip_num ? '' : $number .' ' ). $titles[ ($number%100 > 4 && $number %100 < 20) ? 2 : $cases[min($number%10, 5)] ];
+
+		is_string( $titles ) && $titles = array_map( 'trim', explode( ',', $titles ) );
+
+		$titles_num = ( $number % 100 > 4 && $number % 100 < 20 ) // 5-19, 105-119, ...
+			? 2
+			: [ 2, 0, 1, 1, 1, 2 ][ min( $number % 10, 5 ) ];
+
+		return ( $strip_num ? '' : "$number " ) . $titles[ $titles_num ];
 	}
 
 }
-
-/*
-Изменения:
-4.0 - Баг: $from_time прилетает с поправкой на GMT зону.
-    - Баг: надо "сейчас" при $min_passed == 0.
-3.9 - Новый метод `fix_month_abbrev()` и логика связанная с ним.
-3.8 - Hook `wp_date` для поддержки версий WP 5.3 и выше.
-3.7 - добавил: обработку минут.
-    - изменил: название класса с Kama_Date_Russify на Kama_Date_Human_Diff.
-    - небольшой рефакторинг.
-3.2 - добавил: десятая часть года: "1.2 года назад". "<span title="date"" для месяцев.
-3.1 - баг: "год назад" не отображалось.
-2.6 - добавил: годы (пример: 2 года назад). Небольшой рефакторинг.
-2.5 - добавил: для времени спан со реальным временеи когда вместо времени слово: сейчас, 2 часа назад.
-	  добавил: не работает в админке
-2.4 - баг: 0 дней назад (а надо сегодня)
-2.3 - сегодня показывалось если совпадает просто дата месяца, сделал чтобы совпадали еще и день месяца и год...
-*/
-
