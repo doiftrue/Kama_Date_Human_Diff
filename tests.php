@@ -7,13 +7,13 @@ $format = 'd m Y h';
 
 echo "\nFuture:\n";
 echo $func( $format, time() + 30 );
-echo $func( $format, time() + 65 );
+echo $func( $format, time() + 95 );
 echo $func( $format, time() + ( 10 + 3600 ) );
 echo $func( $format, time() + 24 * 3600 );
 echo $func( $format, time() + 25 * 3600 );
 echo "\nPast:\n";
 echo $func( $format, time() - 30 );
-echo $func( $format, time() - 65 );
+echo $func( $format, time() - 95 );
 echo $func( $format, time() - 10 * 60 );
 echo $func( $format, time() - ( 10 + 3600 ) );
 echo $func( $format, time() - 24 * 3600 );
