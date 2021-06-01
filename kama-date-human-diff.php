@@ -36,11 +36,10 @@ class Kama_Date_Human_Diff {
 	private static function l10n_strings(){
 
 		return (object) [
-			'after'       => _x( 'через %s', 'через 2 дня', 'km' ),
-			'before'      => _x( '%s назад', 'дней назад', 'km' ),
+			'future'      => _x( 'через %s', 'через 2 дня', 'km' ),
+			'the_past'    => _x( '%s назад', 'дней назад', 'km' ),
 			'today'       => __( 'сегодня', 'km' ),
 			'dec_year'    => _x( 'года', '1.5 года назад', 'km' ),
-			'short_month' => _x( 'мес', 'месяц', 'km' ),
 			'_sec'        => __( 'секунда,секунды,секунд', 'km' ),
 			'_min'        => __( 'минута,минуты,минут', 'km' ),
 			'_hour'       => __( 'час,часа,часов', 'km' ),
@@ -82,7 +81,7 @@ class Kama_Date_Human_Diff {
 	 *
 	 * @return string Дату в русском формате
 	 */
-	public static function wp_hook_human_diff( $date, $req_format = '', $from_time = 0, $to_time = null ){
+	public static function wp_hook_human_diff( $date, $req_format = '', $from_time = 0 ){
 
 		// не меняем в админке.
 		// выходим, если в формате есть экранированные символы
@@ -102,7 +101,7 @@ class Kama_Date_Human_Diff {
 			return $date;
 		}
 
-		return '<span title="'. $date .'">'. self::human_diff( $from_time, $to_time, $sec_min_hour ) .'</span>';
+		return '<span title="'. $date .'">'. self::human_diff( $from_time, time(), $sec_min_hour ) .'</span>';
 	}
 
 	/**
@@ -117,18 +116,17 @@ class Kama_Date_Human_Diff {
 	 */
 	public static function human_diff( $from_time = 0, $to_time = 0, $sec_min_hour = true ){
 
-		if( ! $to_time )
-			$to_time = time();
-
 		// optimization
 		static $l10n;
-		if( ! $l10n ) $l10n = self::l10n_strings();
+		$l10n || $l10n = self::l10n_strings();
+
+		$to_time || $to_time = time();
 
 		$diff = $to_time - $from_time;
-		$is_negative = $diff < 0;
+		$is_future = $diff < 0;
 		$sec_passed = abs( $diff );
 
-		$outpatt = $is_negative ? $l10n->after : $l10n->before;
+		$outpatt = $is_future ? $l10n->future : $l10n->the_past;
 
 		// less then 24 hours
 		if( $sec_min_hour ){
@@ -171,29 +169,26 @@ class Kama_Date_Human_Diff {
 		}
 
 		// years
-		if( $days_passed >= 365 ){
+		$years_passed = (int) floor( $days_passed / 365 ) ?: 1;
+		$rest_months_passed = (int) floor( ( $days_passed % 365 ) / 30.5 ) ?: 1;
+		$decimal = (int) ( round( $rest_months_passed / 12, 2 ) * 10 ); // десятая часть месяца
 
-			$years_passed = (int) floor( $days_passed / 365 ) ?: 1;
-			$rest_months_passed = (int) floor( ( $days_passed % 365 ) / 30.5 ) ?: 1;
-			$decimal = (int) ( round( $rest_months_passed / 12, 2 ) * 10 ); // десятая часть месяца
-
-			// one year with decimal (float value)
-			if( $years_passed === 1 && $decimal ){
-				$out = "$years_passed.$decimal $l10n->dec_year";
-			}
-			// no number at the beginning
-			elseif( $years_passed === 1 && ! $decimal ){
-				$out = self::_plural( $years_passed, $l10n->_year, true );
-			}
-			// many years with/without decimal
-			else{
-				$decimal_str = $decimal ? ".$decimal" : '';
-				$out = $years_passed . "$decimal_str " . self::_plural( $decimal ?: $years_passed, $l10n->_year, true );
-			}
+		// one year with decimal (float value)
+		if( $years_passed === 1 && $decimal ){
+			$out = "$years_passed.$decimal $l10n->dec_year";
 		}
-
+		// no number at the beginning
+		elseif( $years_passed === 1 && ! $decimal ){
+			$out = self::_plural( $years_passed, $l10n->_year, true );
+		}
+		// many years with/without decimal
+		else{
+			$decimal_str = $decimal ? ".$decimal" : '';
+			$out = $years_passed . "$decimal_str " . self::_plural( $decimal ?: $years_passed, $l10n->_year, true );
+		}
+		
 		return sprintf( $outpatt, $out );
-
+		
 	}
 
 	/**
