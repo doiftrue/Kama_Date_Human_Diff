@@ -9,7 +9,7 @@ new Kama_Date_Human_Diff();
  * @repo      https://github.com/doiftrue/Kama_Date_Human_Diff/blob/master/kama-date-human-diff.php
  * @changelog https://github.com/doiftrue/Kama_Date_Human_Diff/blob/master/changelog.md
  * @author    Kama (wp-kama.ru)
- * @version   5.1
+ * @version   5.2
  */
 class Kama_Date_Human_Diff {
 
@@ -39,6 +39,8 @@ class Kama_Date_Human_Diff {
 			'future'      => _x( 'через %s', 'через 2 дня', 'km' ),
 			'the_past'    => _x( '%s назад', 'дней назад', 'km' ),
 			'today'       => __( 'сегодня', 'km' ),
+			'yesterday'   => __( 'вчера', 'km' ),
+			'tomorrow'    => __( 'завтра', 'km' ),
 			'dec_year'    => _x( 'года', '1.5 года назад', 'km' ),
 			'_sec'        => __( 'секунда,секунды,секунд', 'km' ),
 			'_min'        => __( 'минута,минуты,минут', 'km' ),
@@ -151,6 +153,11 @@ class Kama_Date_Human_Diff {
 			return $l10n->today;
 		}
 
+		//
+		if( $days_passed < 1 ){
+			return $is_future ? $l10n->tomorrow : $l10n->yesterday;
+		}
+
 		// days
 		if( $days_passed < 30 ){
 			$out = self::_plural( $days_passed, $l10n->_day );
@@ -186,9 +193,9 @@ class Kama_Date_Human_Diff {
 			$decimal_str = $decimal ? ".$decimal" : '';
 			$out = $years_passed . "$decimal_str " . self::_plural( $decimal ?: $years_passed, $l10n->_year, true );
 		}
-		
+
 		return sprintf( $outpatt, $out );
-		
+
 	}
 
 	/**
