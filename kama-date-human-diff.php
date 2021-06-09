@@ -153,7 +153,7 @@ class Kama_Date_Human_Diff {
 			return $l10n->today;
 		}
 
-		//
+		// yesterday
 		if( $days_passed < 1 ){
 			return $is_future ? $l10n->tomorrow : $l10n->yesterday;
 		}
