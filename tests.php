@@ -1,3 +1,7 @@
+<?php
+//global $wpdb, $wp_query, $wp_rewrite, $wp, $wp_scripts, $wp_styles, $wp_roles, $current_user, $wp_version, $wp_embed, $wp_locale
+
+
 $func = static function( $from_time  ){
     return sprintf( "\t%s\n", Kama_Date_Human_Diff::human_diff( $from_time, time(), true ) );
 };
@@ -26,6 +30,7 @@ if( 10 ){
 	echo "\nFuture (any):\n";
 	echo $func_day( time() + 23605 );
 	echo $func_day( time() + 83605 );
+	echo $func_day( time() + 113605 );
 	echo $func_day( time() + 893605 );
 	echo $func_day( time() + 9893605 );
 	echo $func_day( time() + 99893605 );
