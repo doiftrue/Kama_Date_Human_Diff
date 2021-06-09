@@ -1,3 +1,5 @@
+5.2 - New method human_diff(). Huge refactor.
+
 4.3 - Minor fixes.
 
 4.0 - Баг: `$from_time` прилетает с поправкой на GMT зону.
