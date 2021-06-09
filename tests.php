@@ -1,6 +1,9 @@
-
-$func = static function( $from_time ){
+$func = static function( $from_time  ){
     return sprintf( "\t%s\n", Kama_Date_Human_Diff::human_diff( $from_time, time(), true ) );
+};
+
+$func_day = static function( $from_time ){
+    return sprintf( "\t%s\n", Kama_Date_Human_Diff::human_diff( $from_time, time(), false ) );
 };
 
 if( 10 ){
@@ -21,17 +24,18 @@ if( 10 ){
 
 
 	echo "\nFuture (any):\n";
-	echo $func( time() + 23605 );
-	echo $func( time() + 83605 );
-	echo $func( time() + 893605 );
-	echo $func( time() + 9893605 );
-	echo $func( time() + 99893605 );
+	echo $func_day( time() + 23605 );
+	echo $func_day( time() + 83605 );
+	echo $func_day( time() + 893605 );
+	echo $func_day( time() + 9893605 );
+	echo $func_day( time() + 99893605 );
 	echo "\nPast (any):\n";
-	echo $func( time() - 3605 );
-	echo $func( time() - 113605 );
-	echo $func( time() - 1113605 );
-	echo $func( time() - 11113605 );
-	echo $func( time() - 111113605 );
-	echo $func( time() - 1111113605 );
+	echo $func_day( time() - 3605 );
+	echo $func_day( time() - 83605 );
+	echo $func_day( time() - 113605 );
+	echo $func_day( time() - 1113605 );
+	echo $func_day( time() - 11113605 );
+	echo $func_day( time() - 111113605 );
+	echo $func_day( time() - 1111113605 );
 	
 }
