@@ -1,3 +1,5 @@
+5.3 - Bugfix. Mini refactor.
+
 5.2 - New method human_diff(). Huge refactor.
 
 4.3 - Minor fixes.
