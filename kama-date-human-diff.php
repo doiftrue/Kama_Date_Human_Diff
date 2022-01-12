@@ -9,7 +9,8 @@ new Kama_Date_Human_Diff();
  * @repo      https://github.com/doiftrue/Kama_Date_Human_Diff/blob/master/kama-date-human-diff.php
  * @changelog https://github.com/doiftrue/Kama_Date_Human_Diff/blob/master/changelog.md
  * @author    Kama (wp-kama.ru)
- * @version   5.2
+ *
+ * @version   5.3
  */
 class Kama_Date_Human_Diff {
 
@@ -103,7 +104,7 @@ class Kama_Date_Human_Diff {
 			return $date;
 		}
 
-		return '<span title="'. $date .'">'. self::human_diff( $from_time, time(), $sec_min_hour ) .'</span>';
+		return '<span title="'. $date .'">'. self::human_diff( $from_time, $sec_min_hour ) .'</span>';
 	}
 
 	/**
@@ -111,12 +112,12 @@ class Kama_Date_Human_Diff {
 	 * into human readable format. Ex: `10 minutes ago`
 	 *
 	 * @param int  $from_time
-	 * @param int  $to_time
 	 * @param bool $sec_min_hour Show seconds/minutes/hours or start from days only.
+	 * @param int  $to_time
 	 *
 	 * @return string
 	 */
-	public static function human_diff( $from_time = 0, $to_time = 0, $sec_min_hour = true ){
+	public static function human_diff( $from_time = 0, $sec_min_hour = true, $to_time = 0 ){
 
 		// optimization
 		static $l10n;
@@ -170,7 +171,7 @@ class Kama_Date_Human_Diff {
 
 			$months_passed = (int) floor( $days_passed / 30.5 ) ?: 1;
 
-			$out = self::_plural( 1, $l10n->_month, ( $months_passed === 1 ) );
+			$out = self::_plural( $months_passed, $l10n->_month, ( $months_passed === 1 ) );
 
 			return sprintf( $outpatt, $out );
 		}
@@ -233,11 +234,11 @@ class Kama_Date_Human_Diff {
 		if(
 			! preg_match( '/[FMlS]/', $req_format )
 			|| determine_locale() !== 'ru_RU'
-			//|| false !== strpos( $req_format, '\\')
-		)
+		){
 			return $date;
+		}
 
-		$date = strtr( $date, [
+		return strtr( $date, [
 			'Январь'=>'января', 'Февраль'=>'февраля', 'Март'=>'марта', 'Апрель'=>'апреля', 'Май'=>'мая', 'Июнь'=>'июня', 'Июль'=>'июля', 'Август'=>'августа', 'Сентябрь'=>'сентября', 'Октябрь'=>'октября', 'Ноябрь'=>'ноября', 'Декабрь'=>'декабря',
 
 			'Янв'=>'янв.', 'Фев'=>'фев.', 'Мар'=>'март', 'Апр'=>'апр.', 'Июн'=>'июнь', 'Июл'=>'июль', 'Авг'=>'авг.', 'Сен'=>'сен.', 'Окт'=>'окт.', 'Ноя'=>'ноя.', 'Дек'=>'дек.',
@@ -250,9 +251,9 @@ class Kama_Date_Human_Diff {
 
 			'Sun'=>'вос.', 'Mon'=>'пон.', 'Tue'=>'вт.', 'Wed'=>'ср.', 'Thu'=>'чет.', 'Fri'=>'пят.', 'Sat'=>'суб.', 'th'=>'', 'st'=>'', 'nd'=>'', 'rd'=>'',
 		] );
-
-		return $date;
 	}
 
 
 }
+
+
