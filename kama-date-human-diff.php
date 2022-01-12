@@ -9,7 +9,7 @@ new Kama_Date_Human_Diff();
  * @repo      https://github.com/doiftrue/Kama_Date_Human_Diff/blob/master/kama-date-human-diff.php
  * @changelog https://github.com/doiftrue/Kama_Date_Human_Diff/blob/master/changelog.md
  * @author    Kama (wp-kama.ru)
- *
+ *            
  * @version   5.3
  */
 class Kama_Date_Human_Diff {
@@ -18,17 +18,15 @@ class Kama_Date_Human_Diff {
 
 		$is_new = version_compare( $GLOBALS['wp_version'], '5.3.0', '>=' );
 
-		if( $is_new )
-			add_filter( 'wp_date',   [ __CLASS__, 'wp_hook_human_diff' ], 11, 3 ); // WP 5.3
-		else
-			add_filter( 'date_i18n', [ __CLASS__, 'wp_hook_human_diff' ], 11, 3 ); // WP < 5.3
+		$is_new 
+			? add_filter( 'wp_date',   [ __CLASS__, 'wp_hook_human_diff' ], 11, 3 )  // WP 5.3
+			: add_filter( 'date_i18n', [ __CLASS__, 'wp_hook_human_diff' ], 11, 3 ); // WP < 5.3
 
 		add_action( 'after_setup_theme', [ __CLASS__, 'fix_month_abbrev' ], 0 );
 
-		//if( $is_new )
-		//  add_filter( 'wp_date',   [ __CLASS__, 'month_declination' ], 11, 2 ); // WP 5.3
-		//else
-		//  add_filter( 'date_i18n', [ __CLASS__, 'month_declination' ], 11, 2 ); // WP < 5.3
+		//$is_new
+		//	? add_filter( 'wp_date',   [ __CLASS__, 'month_declination' ], 11, 2 )  // WP 5.3
+		//	: add_filter( 'date_i18n', [ __CLASS__, 'month_declination' ], 11, 2 ); // WP < 5.3
 	}
 
 	/**
