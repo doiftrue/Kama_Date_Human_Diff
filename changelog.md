@@ -1,3 +1,5 @@
+5.4 - Moved to abstarct class with init() method initialisation.
+
 5.3 - Bugfix. Mini refactor.
 
 5.2 - New method human_diff(). Huge refactor.
