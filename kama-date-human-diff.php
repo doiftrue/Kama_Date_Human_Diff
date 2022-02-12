@@ -1,6 +1,6 @@
 <?php
 
-new Kama_Date_Human_Diff();
+namespace Kama;
 
 /**
  * Показывает разницу от текущей даты: 3 часа назад, 5 дней назад, 2 часа назад.
@@ -9,24 +9,28 @@ new Kama_Date_Human_Diff();
  * @repo      https://github.com/doiftrue/Kama_Date_Human_Diff/blob/master/kama-date-human-diff.php
  * @changelog https://github.com/doiftrue/Kama_Date_Human_Diff/blob/master/changelog.md
  * @author    Kama (wp-kama.ru)
- *            
- * @version   5.3
+ *
+ * @version   5.4
  */
-class Kama_Date_Human_Diff {
+abstract class WP_Date_Human_Diff {
 
-	public function __construct(){
+	public static function init(){
 
-		$is_new = version_compare( $GLOBALS['wp_version'], '5.3.0', '>=' );
-
-		$is_new 
-			? add_filter( 'wp_date',   [ __CLASS__, 'wp_hook_human_diff' ], 11, 3 )  // WP 5.3
-			: add_filter( 'date_i18n', [ __CLASS__, 'wp_hook_human_diff' ], 11, 3 ); // WP < 5.3
+		// WP 5.3
+		if( version_compare( $GLOBALS['wp_version'], '5.3.0', '>=' ) ){
+			add_filter( 'wp_date', [ __CLASS__, 'wp_hook_human_diff' ], 11, 3 );
+		}
+		// WP < 5.3
+		else{
+			add_filter( 'date_i18n', [ __CLASS__, 'wp_hook_human_diff' ], 11, 3 );
+		}
 
 		add_action( 'after_setup_theme', [ __CLASS__, 'fix_month_abbrev' ], 0 );
 
-		//$is_new
-		//	? add_filter( 'wp_date',   [ __CLASS__, 'month_declination' ], 11, 2 )  // WP 5.3
-		//	: add_filter( 'date_i18n', [ __CLASS__, 'month_declination' ], 11, 2 ); // WP < 5.3
+		//if( $is_new )
+		//  add_filter( 'wp_date',   [ __CLASS__, 'month_declination' ], 11, 2 ); // WP 5.3
+		//else
+		//  add_filter( 'date_i18n', [ __CLASS__, 'month_declination' ], 11, 2 ); // WP < 5.3
 	}
 
 	/**
