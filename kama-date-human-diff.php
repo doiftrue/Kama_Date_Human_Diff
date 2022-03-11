@@ -10,7 +10,7 @@ namespace Kama;
  * @changelog https://github.com/doiftrue/Kama_Date_Human_Diff/blob/master/changelog.md
  * @author    Kama (wp-kama.ru)
  *
- * @version   5.4
+ * @version   5.5
  */
 abstract class WP_Date_Human_Diff {
 
@@ -37,8 +37,9 @@ abstract class WP_Date_Human_Diff {
 	 * Retrives translations strings.
 	 */
 	private static function l10n_strings(){
+		static $l10n;
 
-		return (object) [
+		$l10n || $l10n = (object) [
 			'future'      => _x( 'через %s', 'через 2 дня', 'km' ),
 			'the_past'    => _x( '%s назад', 'дней назад', 'km' ),
 			'today'       => __( 'сегодня', 'km' ),
@@ -52,6 +53,8 @@ abstract class WP_Date_Human_Diff {
 			'_month'      => __( 'месяц,месяца,месяцев', 'km' ),
 			'_year'       => __( 'год,года,лет', 'km' ),
 		];
+
+		return $l10n;
 	}
 
 	public static function fix_month_abbrev(){
@@ -121,9 +124,7 @@ abstract class WP_Date_Human_Diff {
 	 */
 	public static function human_diff( $from_time = 0, $sec_min_hour = true, $to_time = 0 ){
 
-		// optimization
-		static $l10n;
-		$l10n || $l10n = self::l10n_strings();
+		$l10n = self::l10n_strings();
 
 		$to_time || $to_time = time();
 
