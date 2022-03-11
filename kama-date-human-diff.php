@@ -3,8 +3,12 @@
 namespace Kama;
 
 /**
- * Показывает разницу от текущей даты: 3 часа назад, 5 дней назад, 2 часа назад.
- * Руссифицирует даты в WordPress, переводит месяца и дни недели.
+ * Shows the difference from the current date: 3 hours ago, 5 days ago, 2 hours ago.
+ * Russify dates in WordPress, translating months and days of the week.
+ *
+ * To disable diff translation for date add back slash (\) into the format. Example:
+ *
+ *     wp_date( 'j F\ Y' );
  *
  * @repo      https://github.com/doiftrue/Kama_Date_Human_Diff/blob/master/kama-date-human-diff.php
  * @changelog https://github.com/doiftrue/Kama_Date_Human_Diff/blob/master/changelog.md
@@ -60,6 +64,10 @@ abstract class WP_Date_Human_Diff {
 	public static function fix_month_abbrev(){
 		global $wp_locale;
 
+		if( 'ru_RU' !== determine_locale() ){
+			return;
+		}
+
 		$wp_locale->month_abbrev = [
            'Январь'    => 'янв.',
            'Февраль'   => 'фев.',
@@ -93,8 +101,9 @@ abstract class WP_Date_Human_Diff {
 
 		// не меняем в админке.
 		// выходим, если в формате есть экранированные символы
-		if( is_admin() || false !== strpos( $req_format, '\\' ) )
+		if( is_admin() || false !== strpos( $req_format, '\\' ) ){
 			return $date;
+		}
 
 		// format has time
 		if( preg_match( '/[aABgGhHis]/', $req_format ) ){
@@ -242,21 +251,27 @@ abstract class WP_Date_Human_Diff {
 		}
 
 		return strtr( $date, [
-			'Январь'=>'января', 'Февраль'=>'февраля', 'Март'=>'марта', 'Апрель'=>'апреля', 'Май'=>'мая', 'Июнь'=>'июня', 'Июль'=>'июля', 'Август'=>'августа', 'Сентябрь'=>'сентября', 'Октябрь'=>'октября', 'Ноябрь'=>'ноября', 'Декабрь'=>'декабря',
+			'Январь'=>'января', 'Февраль'=>'февраля', 'Март'=>'марта', 'Апрель'=>'апреля',
+			'Май'=>'мая', 'Июнь'=>'июня', 'Июль'=>'июля', 'Август'=>'августа', 'Сентябрь'=>'сентября',
+			'Октябрь'=>'октября', 'Ноябрь'=>'ноября', 'Декабрь'=>'декабря',
 
-			'Янв'=>'янв.', 'Фев'=>'фев.', 'Мар'=>'март', 'Апр'=>'апр.', 'Июн'=>'июнь', 'Июл'=>'июль', 'Авг'=>'авг.', 'Сен'=>'сен.', 'Окт'=>'окт.', 'Ноя'=>'ноя.', 'Дек'=>'дек.',
+			'Янв'=>'янв.', 'Фев'=>'фев.', 'Мар'=>'март', 'Апр'=>'апр.', 'Июн'=>'июнь',
+			'Июл'=>'июль', 'Авг'=>'авг.', 'Сен'=>'сен.', 'Окт'=>'окт.', 'Ноя'=>'ноя.', 'Дек'=>'дек.',
 
-			'January'=>'января', 'February'=>'февраля', 'March'=>'марта', 'April'=>'апреля', 'May'=>'мая', 'June'=>'июня', 'July'=>'июля', 'August'=>'августа', 'September'=>'сентября', 'October'=>'октября', 'November'=>'ноября', 'December'=>'декабря',
+			'January'=>'января', 'February'=>'февраля', 'March'=>'марта', 'April'=>'апреля',
+			'May'=>'мая', 'June'=>'июня', 'July'=>'июля', 'August'=>'августа',
+			'September'=>'сентября', 'October'=>'октября', 'November'=>'ноября', 'December'=>'декабря',
 
-			'Jan'=>'янв.', 'Feb'=>'фев.', 'Mar'=>'март.', 'Apr'=>'апр.', 'Jun'=>'июня', 'Jul'=>'июля', 'Aug'=>'авг.', 'Sep'=>'сен.', 'Oct'=>'окт.', 'Nov'=>'нояб.', 'Dec'=>'дек.',
+			'Jan'=>'янв.', 'Feb'=>'фев.', 'Mar'=>'март.', 'Apr'=>'апр.', 'Jun'=>'июня',
+			'Jul'=>'июля', 'Aug'=>'авг.', 'Sep'=>'сен.', 'Oct'=>'окт.', 'Nov'=>'нояб.', 'Dec'=>'дек.',
 
-			'Sunday'=>'воскресенье', 'Monday'=>'понедельник', 'Tuesday'=>'вторник', 'Wednesday'=>'среда', 'Thursday'=>'четверг', 'Friday'=>'пятница', 'Saturday'=>'суббота',
+			'Sunday'=>'воскресенье', 'Monday'=>'понедельник', 'Tuesday'=>'вторник',
+			'Wednesday'=>'среда', 'Thursday'=>'четверг', 'Friday'=>'пятница', 'Saturday'=>'суббота',
 
-			'Sun'=>'вос.', 'Mon'=>'пон.', 'Tue'=>'вт.', 'Wed'=>'ср.', 'Thu'=>'чет.', 'Fri'=>'пят.', 'Sat'=>'суб.', 'th'=>'', 'st'=>'', 'nd'=>'', 'rd'=>'',
+			'Sun'=>'вос.', 'Mon'=>'пон.', 'Tue'=>'вт.', 'Wed'=>'ср.', 'Thu'=>'чет.',
+			'Fri'=>'пят.', 'Sat'=>'суб.', 'th'=>'', 'st'=>'', 'nd'=>'', 'rd'=>'',
 		] );
 	}
 
 
 }
-
-
