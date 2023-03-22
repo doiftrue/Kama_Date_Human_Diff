@@ -1,3 +1,5 @@
+5.7 - `wp_date_human_diff__l10n` filter added. Minor improvements.
+
 5.4 - Moved to abstarct class with init() method initialisation.
 
 5.3 - Bugfix. Mini refactor.
