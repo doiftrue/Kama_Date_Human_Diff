@@ -6,7 +6,7 @@ namespace Kama;
  * Shows the difference from the current date: 3 hours ago, 5 days ago, 2 hours ago.
  * Russify dates in WordPress, translating months and days of the week.
  *
- * To disable diff translation for date add back slash (\) into the format. Example:
+ * To disable diff translation for date add backslash (\) into the format. Example:
  *
  *     wp_date( 'j F\ Y' );
  *
@@ -14,9 +14,9 @@ namespace Kama;
  * @changelog https://github.com/doiftrue/Kama_Date_Human_Diff/blob/master/changelog.md
  * @author    Kama (wp-kama.ru)
  *
- * @version   5.5
+ * @version   5.7
  */
-abstract class WP_Date_Human_Diff {
+final class WP_Date_Human_Diff {
 
 	public static function init(){
 
@@ -43,7 +43,7 @@ abstract class WP_Date_Human_Diff {
 	private static function l10n_strings(){
 		static $l10n;
 
-		$l10n || $l10n = (object) [
+		$l10n || $l10n = apply_filters( 'wp_date_human_diff__l10n', (object) [
 			'future'      => _x( 'через %s', 'через 2 дня', 'km' ),
 			'the_past'    => _x( '%s назад', 'дней назад', 'km' ),
 			'today'       => __( 'сегодня', 'km' ),
@@ -56,7 +56,7 @@ abstract class WP_Date_Human_Diff {
 			'_day'        => __( 'день,дня,дней', 'km' ),
 			'_month'      => __( 'месяц,месяца,месяцев', 'km' ),
 			'_year'       => __( 'год,года,лет', 'km' ),
-		];
+		] );
 
 		return $l10n;
 	}
@@ -81,27 +81,25 @@ abstract class WP_Date_Human_Diff {
            'Октябрь'   => 'окт.',
            'Ноябрь'    => 'ноя.',
            'Декабрь'   => 'дек.',
-
        ] + $wp_locale->month_abbrev;
 	}
 
 	/**
-	 * Меняет выводимую дату на разницу: 3 часа назад, 5 дней назад, 7 месяцев назад...
-	 * Функция для фильтра `wp_date`.
+	 * Changes the displayed date to the human one: 3 hours ago, 5 days ago, 7 months ago...
+	 * Function for the `wp_date` filter.
 	 *
-	 * Чтобы функция не работала, в формате нужно использовать обратный слэш \. Пр: "j F\ Y", "\дата: j F Y"
+	 * You must use a backslash (`\`) in the format to prevent the function from running. Eg: "j F\ Y", "\дата: j F Y".
 	 *
-	 * @param string $date       Исходная дата получаемая из хука, её будем менять.
-	 * @param string $req_format Нобходимый формат даты.
-	 * @param int    $from_time  Метка времени от которой нужно считать разницу (в UNIX формате).
+	 * @param string $date       Initial date received from the hook, we will change it.
+	 * @param string $req_format The required date format.
+	 * @param int    $from_time  The timestamp from which you want to calculate the difference (in UNIX format).
 	 *
-	 * @return string Дату в русском формате
+	 * @return string Date in Human format: 3 hours ago.
 	 */
 	public static function wp_hook_human_diff( $date, $req_format = '', $from_time = 0 ){
 
-		// не меняем в админке.
-		// выходим, если в формате есть экранированные символы
-		if( is_admin() || false !== strpos( $req_format, '\\' ) ){
+		// leave if there are escaped characters in the format
+		if( false !== strpos( $req_format, '\\' ) ){
 			return $date;
 		}
 
@@ -113,25 +111,25 @@ abstract class WP_Date_Human_Diff {
 		elseif( preg_match( '/[dDjLNSwz]/', $req_format ) ){
 			$sec_min_hour = false;
 		}
-		// special format - dont touch
+		// special format - don't touch
 		else {
 			return $date;
 		}
 
-		return '<span title="'. $date .'">'. self::human_diff( $from_time, $sec_min_hour ) .'</span>';
+		return '<span title="'. esc_attr( $date ) .'">'. self::human_diff( $from_time, $sec_min_hour ) .'</span>';
 	}
 
 	/**
 	 * Calculate difference between two specified timestamps, and convert the difference
-	 * into human readable format. Ex: `10 minutes ago`
+	 * into human-readable format. Ex: `10 minutes ago`
 	 *
-	 * @param int  $from_time
-	 * @param bool $sec_min_hour Show seconds/minutes/hours or start from days only.
-	 * @param int  $to_time
+	 * @param int  $from_time     Unix-timestamp from which to calc the difference.
+	 * @param bool $sec_min_hour  Show seconds/minutes/hours or start from days only.
+	 * @param int  $to_time       Default current time - time().
 	 *
 	 * @return string
 	 */
-	public static function human_diff( $from_time = 0, $sec_min_hour = true, $to_time = 0 ){
+	public static function human_diff( int $from_time = 0, bool $sec_min_hour = true, int $to_time = 0 ): string {
 
 		$l10n = self::l10n_strings();
 
@@ -143,20 +141,23 @@ abstract class WP_Date_Human_Diff {
 
 		$outpatt = $is_future ? $l10n->future : $l10n->the_past;
 
-		// less then 24 hours
+		// less than 24 hours
 		if( $sec_min_hour ){
 
 			$min_passed   = (int) floor( $sec_passed / 60 );
 			$hours_passed = (int) floor( $sec_passed / 3600 );
 
-			if( $sec_passed < 60 )
+			if( $sec_passed < 60 ){
 				return sprintf( $outpatt, self::_plural( $sec_passed, $l10n->_sec ) );
+			}
 
-			if( $min_passed < 60 )
+			if( $min_passed < 60 ){
 				return sprintf( $outpatt, self::_plural( $min_passed, $l10n->_min ) );
+			}
 
-			if( $hours_passed <= 24 )
+			if( $hours_passed <= 24 ){
 				return sprintf( $outpatt, self::_plural( $hours_passed, $l10n->_hour ) );
+			}
 		}
 
 		$days_passed = (int) floor( $sec_passed / DAY_IN_SECONDS );
@@ -212,7 +213,7 @@ abstract class WP_Date_Human_Diff {
 	}
 
 	/**
-	 * Склонение. Возвращает переданное число и слово после него в нужном склонении.
+	 * Declension. Returns the passed number and the word after it in the desired declension.
 	 *
 	 * @param int    $number
 	 * @param string $titles
@@ -273,5 +274,6 @@ abstract class WP_Date_Human_Diff {
 		] );
 	}
 
-
 }
+
+
