@@ -14,36 +14,19 @@ namespace Kama;
  * @changelog https://github.com/doiftrue/Kama_Date_Human_Diff/blob/master/changelog.md
  * @author    Kama (wp-kama.ru)
  *
- * @version   5.7
+ * @version   5.9.0
  */
 final class WP_Date_Human_Diff {
 
-	public static function init(){
-
-		// WP 5.3
-		if( version_compare( $GLOBALS['wp_version'], '5.3.0', '>=' ) ){
-			add_filter( 'wp_date', [ __CLASS__, 'wp_hook_human_diff' ], 11, 3 );
-		}
-		// WP < 5.3
-		else{
-			add_filter( 'date_i18n', [ __CLASS__, 'wp_hook_human_diff' ], 11, 3 );
-		}
-
+	public static function init(): void {
+		add_filter( 'wp_date', [ __CLASS__, 'wp_hook_human_diff' ], 11, 3 );
 		add_action( 'after_setup_theme', [ __CLASS__, 'fix_month_abbrev' ], 0 );
-
-		//if( $is_new )
-		//  add_filter( 'wp_date',   [ __CLASS__, 'month_declination' ], 11, 2 ); // WP 5.3
-		//else
-		//  add_filter( 'date_i18n', [ __CLASS__, 'month_declination' ], 11, 2 ); // WP < 5.3
 	}
 
-	/**
-	 * Retrives translations strings.
-	 */
 	private static function l10n_strings(){
 		static $l10n;
 
-		$l10n || $l10n = apply_filters( 'wp_date_human_diff__l10n', (object) [
+		$l10n || $l10n = (object) apply_filters( 'wp_date_human_diff__l10n', [
 			'future'      => _x( 'через %s', 'через 2 дня', 'km' ),
 			'the_past'    => _x( '%s назад', 'дней назад', 'km' ),
 			'today'       => __( 'сегодня', 'km' ),
@@ -61,7 +44,7 @@ final class WP_Date_Human_Diff {
 		return $l10n;
 	}
 
-	public static function fix_month_abbrev(){
+	public static function fix_month_abbrev(): void {
 		global $wp_locale;
 
 		if( 'ru_RU' !== determine_locale() ){
@@ -97,9 +80,8 @@ final class WP_Date_Human_Diff {
 	 * @return string Date in Human format: 3 hours ago.
 	 */
 	public static function wp_hook_human_diff( $date, $req_format = '', $from_time = 0 ){
-
 		// leave if there are escaped characters in the format
-		if( false !== strpos( $req_format, '\\' ) ){
+		if( ( is_admin() && ! wp_doing_ajax() ) || str_contains( $req_format, '\\' ) ){
 			return $date;
 		}
 
@@ -116,7 +98,7 @@ final class WP_Date_Human_Diff {
 			return $date;
 		}
 
-		return '<span title="'. esc_attr( $date ) .'">'. self::human_diff( $from_time, $sec_min_hour ) .'</span>';
+		return sprintf( '<span title="%s">%s</span>', esc_attr( $date ), self::human_diff( (int) $from_time, $sec_min_hour ) );
 	}
 
 	/**
@@ -126,8 +108,6 @@ final class WP_Date_Human_Diff {
 	 * @param int  $from_time     Unix-timestamp from which to calc the difference.
 	 * @param bool $sec_min_hour  Show seconds/minutes/hours or start from days only.
 	 * @param int  $to_time       Default current time - time().
-	 *
-	 * @return string
 	 */
 	public static function human_diff( int $from_time = 0, bool $sec_min_hour = true, int $to_time = 0 ): string {
 
@@ -143,7 +123,6 @@ final class WP_Date_Human_Diff {
 
 		// less than 24 hours
 		if( $sec_min_hour ){
-
 			$min_passed   = (int) floor( $sec_passed / 60 );
 			$hours_passed = (int) floor( $sec_passed / 3600 );
 
@@ -181,7 +160,6 @@ final class WP_Date_Human_Diff {
 
 		// months
 		if( $days_passed < 365 ){
-
 			$months_passed = (int) floor( $days_passed / 30.5 ) ?: 1;
 
 			$out = self::_plural( $months_passed, $l10n->_month, ( $months_passed === 1 ) );
@@ -209,27 +187,21 @@ final class WP_Date_Human_Diff {
 		}
 
 		return sprintf( $outpatt, $out );
-
 	}
 
 	/**
 	 * Declension. Returns the passed number and the word after it in the desired declension.
-	 *
-	 * @param int    $number
-	 * @param string $titles
-	 * @param bool   $strip_num
-	 *
-	 * @return string
 	 */
-	private static function _plural( $number, $titles, $strip_num = false ){
+	private static function _plural( float $number, string $titles, bool $strip_num = false ): string {
 
 		$titles = array_map( 'trim', explode( ',', $titles ) );
+		$number = (int) round( $number );
 
 		$titles_num = ( $number % 100 > 4 && $number % 100 < 20 ) // 5-19, 105-119, ...
 			? 2
 			: [ 2, 0, 1, 1, 1, 2 ][ min( $number % 10, 5 ) ];
 
-		return ( $strip_num ? '' : "$number " ) . $titles[ $titles_num ];
+		return ( $strip_num ? '' : "$number " ) . ( $titles[ $titles_num ] ?? $titles[0] );
 	}
 
 	/**
